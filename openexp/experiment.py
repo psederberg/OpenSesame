@@ -19,6 +19,7 @@ from openexp import trial, response, canvas, sampler
 import warnings
 import random
 import os.path
+import os
 import pygame
 from pygame.locals import *
 
@@ -46,7 +47,7 @@ class experiment:
 		# http://www.pygame.org/docs/ref/display.html#pygame.display.set_mode
 		self.mode_hwsurface = "yes"
 		self.mode_doublebuf = "yes"
-		self.mode_opengl = "no"
+		self.mode_opengl = "yes"
 		
 		self.resolution = 1024, 768
 		self.fullscreen = False
@@ -93,8 +94,7 @@ class experiment:
 		
 		"""
 		Initializes the display
-		"""
-				
+		"""				
 		pygame.init()
 		response.init_key_codes()
 
@@ -110,6 +110,14 @@ class experiment:
 		if self.mode_opengl == "yes":
 			mode = mode | pygame.OPENGL
 			print "experiment.init_display(): video mode: using opengl"
+
+			# Set vertical retrace for GL 
+			# nVidia linux
+			val = "1"
+			os.environ["__GL_SYNC_TO_VBLANK"] = val
+			# Set for recent linux Mesa DRI Radeon
+			os.environ["LIBGL_SYNC_REFRESH"] = val
+
 		if self.fullscreen:
 			mode = mode | pygame.FULLSCREEN
 			print "experiment.init_display(): video mode: going fullscreen"

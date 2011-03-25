@@ -25,6 +25,8 @@ import os
 import os.path
 import tempfile
 
+import ogl_image
+
 class canvas:
 	
 	def __init__(self, experiment, bgcolor = "black", fgcolor = "white"):
@@ -34,7 +36,8 @@ class canvas:
 		"""
 		
 		if experiment.mode_opengl == "yes":
-			raise openexp.exceptions.canvas_error("Sorry! The openexp.canvas class cannot be used when the display is in OpenGL mode. This means that you cannot use sketchpad and feedbacks items (and other items that rely on the canvas) when OpenGL is enabled (mode_opengl = 'yes').<br /><br />You may want to use PyOpenGL instead of the canvas class or, if you don't need fancy OpenGL stuff, set mode_opengl back to 'no'.")
+			pass
+			#raise openexp.exceptions.canvas_error("Sorry! The openexp.canvas class cannot be used when the display is in OpenGL mode. This means that you cannot use sketchpad and feedbacks items (and other items that rely on the canvas) when OpenGL is enabled (mode_opengl = 'yes').<br /><br />You may want to use PyOpenGL instead of the canvas class or, if you don't need fancy OpenGL stuff, set mode_opengl back to 'no'.")
 		
 		self.experiment = experiment
 		self.fgcolor = self.color(fgcolor)
@@ -42,10 +45,15 @@ class canvas:
 		self.penwidth = 1
 		self.antialias = True
 		
-		self.surface = self.experiment.surface.copy()					
+		if experiment.mode_opengl == "yes":
+			self.surface = pygame.Surface(self.experiment.resolution, SRCALPHA)
+			self.low_surface = ogl_image.LowImage(self.surface)
+		else:
+			self.surface = self.experiment.surface.copy()					
+
 		self.font = self.experiment.font
 		self.clear()
-		
+				
 	def color(self, color):
 	
 		"""
@@ -74,7 +82,7 @@ class canvas:
 		"""
 		Copies the contents of another canvas
 		"""
-		
+		# PBS: I don't think this will work for OpenGL
 		self.surface = canvas.surface.copy()
 		
 	def xcenter(self):
@@ -101,8 +109,18 @@ class canvas:
 		v-sync if enabled.		
 		"""
 
-		self.experiment.surface.blit(self.surface, (0, 0))		
-		pygame.display.flip()
+		if self.experiment.mode_opengl == "yes":			
+			self.low_surface.gl_texture_dirty = True
+			self.low_surface.show(0,0)
+			#stime = pygame.time.get_ticks()
+			ogl_image.doBlockingFlip()
+			#etime = pygame.time.get_ticks()
+			#print "Flip", etime, etime-stime
+		else:
+			# do non-opengl
+			self.experiment.surface.blit(self.surface, (0, 0))		
+			pygame.display.flip()
+
 		return pygame.time.get_ticks()
 		
 	def clear(self):
