@@ -231,11 +231,11 @@ class OGLSprite:
         while w2 < w: w2 <<= 1
         while h2 < h: h2 <<= 1
 
-        # img = pygame.Surface((w2, h2), SRCALPHA, surf)
-        # img.blit(surf, (0,0))
-        # rgba = pygame.image.tostring(img, "RGBA", 0)
+        img = pygame.Surface((w2, h2), SRCALPHA, surf)
+        img.blit(surf, (0,0))
+        rgba = pygame.image.tostring(img, "RGBA", 0)
 
-        rgba = pygame.image.tostring(surf, "RGBA", 0)
+        #rgba = pygame.image.tostring(surf, "RGBA", 0)
 
         glBindTexture(GL_TEXTURE_2D, self.texid)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,

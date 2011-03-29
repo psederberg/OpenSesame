@@ -179,7 +179,7 @@ class experiment:
 					else:
 						self.logfile = self.logfile[:-1]
 				key = None
-				
+
 	def init_trials(self):
 		
 		"""
