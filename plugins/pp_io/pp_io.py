@@ -21,11 +21,24 @@ from libqtopensesame import qtplugin
 from PyQt4 import QtGui, QtCore
 
 import warnings
+import os
+
+import imp
 
 try:
-	import parallel
+	if os.name == 'posix':
+		# import the local modified version of pyparallel
+		# that allows for non-exclusive connections to the parport
+		path_to_file = os.path.join(os.path.dirname(__file__), "parallelppdev.py")
+		parallel = imp.load_source('parallel', path_to_file)
+		#import parallelppdev as parallel
+	else:
+		import parallel
 except ImportError:
 	warnings.warn("The parallel module could not load, please make sure you have installed pyparallel.")
+
+# we only want one instance of pp, so here's a global var
+_pp = None
 
 class pp_io(item.item):
 
@@ -48,14 +61,15 @@ class pp_io(item.item):
 		self.description = "Allows setting pins on the parallel port"
 		
 		# Set some item-specific variables
-		self.pp = None
-		try:
-			self.pp = parallel.Parallel()
-		except OSError:
-			warnings.warn("Could not access /dev/parport0.")
-
+		global _pp
+		if _pp is None:
+			try:
+				_pp = parallel.Parallel()
+			except OSError:
+				warnings.warn("Could not access /dev/parport0.")
+		self.pp = _pp
 		self.value = 0
-		self.duration = 5
+		self.duration = 1
 		
 		# The parent handles the rest of the contruction
 		item.item.__init__(self, name, experiment, string)
@@ -63,7 +77,7 @@ class pp_io(item.item):
 	def prepare(self):
 	
 		"""
-		Prepare the item. In this case this mean doing little.
+		Prepare the item. In this case this means doing little.
 		"""
 		
 		# Pass the word on to the parent
@@ -85,7 +99,7 @@ class pp_io(item.item):
 		
 		# Set the pp value
 		if not self.pp is None:
-			self.pp.setData(self.value)
+			self.set_item_onset(self.pp.setData(self.value))
 		
 		# This function has been prepared by self.prepare_duration()
 		self._duration_func()
